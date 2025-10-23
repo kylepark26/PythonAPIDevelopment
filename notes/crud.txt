@@ -1,0 +1,32 @@
+CRUD: Create, Read, Update, Delete
+
+Any application regardless of what it does needs to have CRUD operations.
+
+
+Best Practices:
+
+Since we're working with posts, it makes sense to name all the urls and paths
+with /posts, with the plural. This is standard convention for APIs.
+  
+Create: Post /posts           # creating a post, always a POST request
+
+@app.post("/posts"{id}")
+
+
+Read: Get /posts/:id          # getting one individual post, unique identifier
+
+@app.get("/posts/)
+      
+      Get /posts              # for retrieving data from all the posts or multiple posts
+
+@app.get("/posts")
+
+
+Update: Put/Patch /posts/:id  # updating a pre-existing post (PUT: pass all the information fields, PATCH: specific field)
+
+@app.put("/posts/{id}")
+
+
+Delete: Delete /posts/:id.    # deleting a specific post
+
+@app.delete("/posts/{id}")

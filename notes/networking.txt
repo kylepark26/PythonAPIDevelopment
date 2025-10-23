@@ -1,0 +1,65 @@
+from fastapi import FastAPI 
+
+app = FastAPI() 
+
+@app.get("/") 
+async def root(): 
+    return {"message": "poop"}
+
+
+Understanding this from a networking sense.
+
+When starting the FastAPI server, the Uvicorn (the ASGI server)
+
+ASGI server: web server that runs Python applications built on Asynchronous 
+Server Gateway Interface, a specification for how web servers communicate with
+asynchronous Python web frameworks
+
+starts listening for HTTP requests on a port.
+
+At this point, this machine is running a server, it's waiting for incoming TCP
+connections from clients. 
+
+
+Now, me as the client, makes a request by typing http://127.0.0.1:8000/ in a 
+browser. When I enter this URL, the browser acts as an HTTP client. It opens a 
+TCP connection to the FastAPI server at IP 127.0.0.1 and port 8000. 
+
+So,
+
+Broswer -> creates a TCP connection -> to FastAPI (via Uvicorn)
+Then sends a HTTP GET request for /
+
+
+Then, the FastAPI app receives the request.
+Uvicorn accepst the TCP connection. It parses the HTTP request and hands it to
+FastAPI. FastAPI looks at the route definition, and finds the matching handler.
+So the current return statement returns a Python dict, which FastAPI automatically
+converts into JSON and wraps in an HTTP response.
+
+
+Then, the server sends back a response.
+FastAPI sends back something like:
+
+HTTP/1.1 200 OK
+content-type: application/json
+
+{"message": "poop"}
+
+This goes back over the same TCP connection to the browser.
+
+
+Then lastly, the browser displays the response. The browser receives the HTTP 
+response, recognizes it's JSON, and displays it (usually as formatted text or 
+raw JSON).
+
+
+Overarching Flow
+
+Browser (client) 
+   ↓  HTTP GET /
+FastAPI (server via Uvicorn)
+   ↓  Executes root()
+   ↓  Returns {"message": "poop"}
+Browser (client)
+   ↓  Displays response

@@ -1,0 +1,11 @@
+Why we need schema:
+
+- It's a pain to get all the values from the body
+- The client can send whatever they want
+- The data isn't getting validated
+- We ultimately want to force the client to send data in a schema that we expect
+
+This schema is basically a contract between the frontend and the backend.
+The backend sends a message to the frontend saying that they expect the data
+to look a certain way, and if it doesn't it returns an error.
+

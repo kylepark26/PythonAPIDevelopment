@@ -1,0 +1,111 @@
+Importing pydantic
+
+from pydantic import BaseModel
+
+
+
+Say we expect these two specific things for our data.
+
+# title str, content str
+
+You create a class, and provide the data type.
+
+class Post(BaseModel):
+    title: str
+    content: str
+
+So now, we reference this Post Pydantic model in our request.
+
+@app.post("/createposts")
+async def create_post(new_post: Post):
+    print(new_post)
+    return {"data": "new_post"}
+
+So, since we pass this into our path operation, FastAPI will
+automatically validate the data that it receives from the client.
+It checks if it has a title -> str, content -> str, if not it 
+throws an error. It defines a schema that the frontend should send 
+to us. (This will attempt to convert any data that is passed through
+to a string. So yes, passing an Integer, as this can be converted to
+a string, will still work.)
+
+So now, this automatically extracts the data for us.
+
+    print(new_post.title) 
+
+Note that we can also extract specific data as well, easily.
+
+Now, if we were to remove the title from the Postman request body,
+an error should pop up, as we're trying to extract a nonexistent
+title field.
+
+{
+    "detail": [
+        {
+            "type": "missing",
+            "loc": [
+                "body",
+                "title"
+            ],
+            "msg": "Field required",
+            "input": {
+                "content": "check out these awesome beaches"
+            }
+        }
+    ]
+}
+
+It states that inside the body, there's a title field, and it's missing.
+We didn't tell FastAPI to send this, but it automatically does the 
+validation for us, and sends an error message with a status code.
+
+
+
+Now what if we didn't want such a strict enforcement, and wanted an optional
+property. So the frontend could choose to either send a piece a data or not.
+
+class Post(BaseModel):
+    title: str
+    content: str
+    published: bool = True
+
+This means that if the user doesn't provide a published field in the data that
+is passed, then it is defaulted to True, if they do send it, then it results
+in whatever boolean value they sent.
+
+
+
+Say we want another field that doesn't have a default value, but it instead
+defaults to None if it's not provided; so it's completely optional as it won't 
+be stored if the user doesn't provide it.
+
+from typing import Optional
+
+...
+
+class Post(BaseModel):
+    title: str
+    content: str
+    published: bool = True
+    rating: Optional[int] = None
+
+Optional type hint alias is imported from Typing.
+We pass in the type, [int], and set it equal to None, to make it default to None
+if not provided.
+
+
+
+When we extract the data, and save it into new_post, it is stored as a Pydantic model.
+Each Pydantic model has a method called .model_dump. So, if we were to print new_post, 
+we could convert this Pydantic model to a dictionary, and do 
+
+print(new_post)
+print(new_post.model_dump())
+
+See the difference!
+
+title='top beaches in florida' content='check out these awesome beaches' published=True rating=4
+{'title': 'top beaches in florida', 'content': 'check out these awesome beaches', 'published': True, 'rating': 4}
+
+
+

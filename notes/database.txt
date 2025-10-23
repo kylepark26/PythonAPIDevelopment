@@ -1,0 +1,92 @@
+A database is a collection of organized data that can be easily
+accessed and managed.
+
+We don't work or interact with databases directly.
+
+Instead, we make use of a software referred to as a Database 
+Management System.
+
+There are 2 major branches of databases: Relational and NoSQL
+
+Relational: MySQL, PostgreSQL, Oracle, SQL Server
+NoSQL: MongoDB, DynamoDB, Oracle, SQLServer
+
+
+
+Tables
+
+A table represents a subject or event in an application
+
+Say we're building an e-commerce application. We will have a table
+for each part of our application. One for Users, one for Products,
+and one for Purchases, etc. 
+
+These tables are going to form some sort of relation. This is why
+it's called a relational database. 
+
+Furthermore, when designing a database it's important to figure 
+out what these relations are beforehand so we can design an efficient
+database.
+
+A table is made up of columns and rows. 
+Each Column represents a different attribute. (ID, name, age, sex)
+Each row represents a different entry in the table. (different users)
+
+Databases have datatypes just like any programming language.
+
+Data Type (Postgres)
+Numeric: Int, decimal, precision
+Text: Varchar, text 
+bool: boolean 
+sequence: array
+
+Primary Key: A column or a group of elements that uniquely identifies
+each row in a table / table can have one and only one primary key
+
+For instance, the ID can be a primary key, since it's a unique identifier.
+
+The Primary Key does not have to be the ID column always. It's up to us
+to decide which column uniquely defines each record. In another example,
+a email could be a PK, a phone number, SSN, etc.
+
+A UNIQUE constarint can be applied to any column to make sure that every
+record has a unique value for that column. (even besides PK)
+
+By default, when adding a new entry to a database, any column can be left
+blank. When column is left blank, it has a null value. If we need this 
+column to be properly filled in to create a new record, a NOT NULL constraint 
+can be added to the column to ensure that the column is never left blank.
+
+
+
+SQL 
+
+Structured Query Language - Langugae used to communicate with DBMS
+
+So, we send a SQL statement to DBMS, and it's going to then take that
+statement and perform that operation on the database, and then it's 
+going to send that result back to us.
+
+Postgres: Each instance of postgres can be carved into multiple 
+separate databases
+
+For instance, we can create 2 different databases that are completly
+isolate, so for App1 we could create a database1, and for App2 we can 
+create a database2.
+
+This is important because Postgres requires you to specify the name of 
+a database to make a connection. So there needs to be always one database.
+
+
+
+PostgreSQL
+
+When we download PostgreSQL it comes with 4 components
+
+PostgreSQL Server: The actual Postgres database
+pgAdmin 4: GUI that can be used to manage Postgres database
+Stack Builder: Extra installer used to install extra extensions that give Postgres
+extra functionality
+Command Line Tools: Manage Postgres through the GUI as well as the command line
+
+

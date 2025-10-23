@@ -1,0 +1,15 @@
+Web Browser is on the left. API is on the right.
+
+For a GET request, we send a GET request to the API, and the API sends back data.
+
+"Hey API server give me some data."
+
+For a POST request, it's similar, but we can send data to the API. This is used to
+create something. The API could send the details back to the web browser of the 
+information.
+
+"Hey API I have some data do something with it."
+
+For a POST request, we want to send some data in the body of the request.
+
+

@@ -1,0 +1,13 @@
+Postman
+
+Postman is a tool that allows developers to construct, send, and test HTTP 
+requests to APIs.
+
+Pretty easy to use so far.
+
+
+
+Creating Collections:
+
+Save HTTP requests into a collection so it memorizes, remembers, and saves any requests
+made, allowing you to exit out and not worry about losing it.

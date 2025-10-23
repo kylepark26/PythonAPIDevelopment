@@ -1,0 +1,392 @@
+FastAPI 
+
+Downloading FastAPI
+
+pip install fastapi
+or 
+[all] downloads all optional dependencies.
+pip install fastapi[all]
+
+But, Zsh interprets square brackets as pattern-matching syntax, not as literal characters.
+So, do pip install 'fastapi[all]'
+
+Doing pip freeze shows us all dependencies and optional dependencies as well.
+Furthermore, in the lib folder, all the code associated with the packages are there.
+
+
+
+Importing FastAPI
+
+from fastapi import FastAPI
+
+
+
+Running the live server
+
+We do main, since that's the name of our file name. The app after the colon 
+is the name of our FastAPI instance.
+
+uvicorn main:app
+
+(venv) (base) kylepark@Kyles-MBP-10 PythonAPIDevelopment % uvicorn main:app
+INFO:     Started server process [49647]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+
+http://127.0.0.1:8000, this is the URL our server is running at. This is the IP 
+address that this machine runs on. So this runs on port 8000.
+
+(Side note, since main is now in the app folder we change the uvicorn line)
+
+uvicorn app.main:app --reload
+
+
+
+Dissecting the Path Operation Block
+
+@app.get("/") 
+async def root():
+    return {"message": "Hello, World!"}
+
+This is made up of two components. The function and the decorator.
+
+The function root() is just a plain old Python function. 
+
+async is optional, keyword used if we perform some asynchronous task, something
+that takes a certain amount of time. So we could remove it if we want.
+
+The information we return back to the user is in the return statement.
+
+So right now, we're returning a Python dictionary. What happens is FastAPI 
+automatically converts this to JSON, the main universal language of APIs. JSONs
+is used to send data back and forth between APIs.
+
+The decorator applied to the function applies some "magic". Say we removed the 
+decorator. Then this is just a plain old Python function, it has nothing to do
+with FastAPI. So to act like an API, we have to use a decorator. This decorator
+actually turns the function into a path operation, so someone who wants to use 
+the API can hit this endpoint. 
+
+@ (decorator) 
+app (FastAPI instance) 
+. 
+get (HTTP method, send GET request to API) 
+("/") (this is the root path. the path after the specific domain name of our API)
+
+http://127.0.0.1:8000, this is our URL, our web server is hosted on here.
+
+If you open up this page, http://127.0.0.1:8000 and http://127.0.0.1:8000/ are the same
+So this is the "root" path. If you change it to "login", then this would only appear if 
+we went to http://127.0.0.1:8000/login. This just references the path.
+
+
+
+Making a change
+
+@app.get("/")
+async def root():
+    return {"message": "welcome to my api"}
+
+Made a change to the message. Anytime you make a change you need to restart server.
+
+
+
+Restarting server
+
+CTRL C, do uvicorn main:app
+
+But, this is where
+
+uvicorn main:app --reload 
+
+comes in. This reloads your server whenever a change occurs.
+
+We use --reload in a development environment. If not, production, we don't need it,
+since we aren't changing our code in a production environment.
+
+
+
+POST Request
+
+@app.post("/createposts")
+async def create_post():
+    return {"message": "Post created successfully"}
+
+
+Say we pass data through the body. We need to update this block so it actually displays
+the information. Furthermore we need to utilize and import the Body library from FastAPI. 
+
+from fastapi.params import Body
+
+...
+
+@app.post("/createposts")
+async def create_post(body: dict = Body(...)):
+    print(body)
+    return {"message": "Post created successfully"}
+
+This endpoint extracts all the fields from the request body, convert it to a Python 
+dictionary, and stores it inside a variable named body. So, we can just print this out
+to the terminal.
+
+So, now in Postman, when we send information through the body, FastAPI receives that 
+data, extracts it, and dispalys it in the terminal.
+
+return {"new_post": f"title {body['title']} content: {body['content']}"}
+
+Since the request body is automatically converted into a dictionary, we can access
+individual fields, like the title and content, and include them in the response.
+
+The print statement is what is printed on the server (terminal in this case). 
+The return statement is what is returned to the client, and is the HTTP response
+sent back (Postman in this case).
+
+
+
+Memory Storage without Database
+
+We can use a simple list of dictionaries to temporarily store our posts in memory, 
+instead of using a database. Each post should include a unique identifier so we can 
+reference it later.
+
+my_posts = [{"title": "title of post 1", "content": "content of post 1", "id": 1},
+            {"title": "favorite foods", "content": "I like pizza", "id": 2}]
+
+To retrieve all the posts, we can create a GET endpoint that returns this list.
+When we return the list, FastAPI automatically serializes the Python data 
+(list of dictionaries) into JSON format before sending it as a response to the client.
+
+@app.get("/posts")
+async def get_posts():
+    return {"data": my_posts}
+
+You can see JSON's concept of an array here, as it's a dictionary wrapped in an array.
+
+{
+    "data": [
+        {
+            "title": "title of post 1",
+            "content": "content of post 1",
+            "id": 1
+        },
+        {
+            "title": "favorite foods",
+            "content": "I like pizza",
+            "id": 2
+        }
+    ]
+}
+
+
+
+Create / Post Request
+
+POST Request
+
+To include data in a POST request, go to Body, click raw, then go to Type (JSON).
+
+JSON format
+
+{
+    "title": "top beaches in Florida",
+    "content": "check out these awesome beaches"
+}
+
+Fairly simple. We simply create a variable that is the dictionary version
+of the Pydantic model, and set the id to a random number range, hoping
+that it's unique. Then we append this to the "memory" storage. This enables
+us to utilize the POST and GET requests, and see the changes happening!
+
+@app.post("/posts")
+async def create_post(post: Post):
+    post_dict = post.model_dump()
+    post_dict['id'] = randrange(0, 1000000)
+    my_posts.append(post_dict)
+    return {"data": post_dict}
+
+
+
+Getting One Unique Post
+
+@app.get("/posts/{id}")
+async def get_post(id):
+    print(id)
+    return {"post_detail": f"Here is post {id}"}
+
+
+The user will provide the ID of the specific post they are interested in,
+and this will be embedded in the URL. The {id} field is referred to as a 
+path parameter. FastAPI will automatically extract this ID, and we can 
+pass it right into our function.
+
+So now, using Postman we can send a GET request for this one unique post.
+
+http://127.0.0.1:8000/posts/2
+
+As seen here, we're requesting for the 2nd post, which is currently hardcoded
+in our code.
+
+{
+    "post_detail": "Here is post 2"
+}
+
+Now, we need to actually retrieve the information from this specific post.
+This isn't the best way to do it, but it works.
+
+Use a helper function.
+
+# find post by id helper function
+def find_post(id):
+    for p in my_posts:
+        if p['id'] == id:
+            return p
+
+@app.get("/posts/{id}")
+async def get_post(id):
+    post = find_post(int(id))
+    return {"post_detail": post}
+
+Notice that the id is wrapped as an int. This is because previously, when
+we didn't wrap this, the result continously provided None. This was an issue
+as the ID that is passed into the functions' type is a str. When comparing a
+str, to the dictionary's int id, this raises an error.
+
+{
+    "post_detail": {
+        "title": "favorite foods",
+        "content": "I like pizza",
+        "id": 2
+    }
+}
+
+So now it works.
+
+But now we need validation!
+
+@app.get("/posts/{id}")
+async def get_post(id: int):
+    post = find_post(id)
+    return {"post_detail": post}
+
+By stating that the parameter needs to be an int, this makes FastAPI 
+automatically validate the path parameter for us. So now, we don't
+have to wrap the id that we pass to the find_post function with int!
+Addditionally, if someone tried to access the endpoint with a non-Integer
+value, FastAPI will return an error before the function even runs.
+
+
+
+Path Order Matters
+
+# get individual post
+@app.get("/posts/{id}")
+async def get_post(id: int):
+    post = find_post(id)
+    return {"post_detail": post}
+
+# grab latest post
+@app.get("/posts/latest")
+def get_latest_post():
+    latest_post = my_posts[-1]
+    return {"latest_post": latest_post}
+
+When we send a GET request to http://127.0.0.1:8000/posts/latest, an 
+error occurs because FastAPI matches routes from top to bottom. It first 
+encounters the "/posts/{id}" route, which technically matches the path 
+"/posts/latest". However, since latest is a string and cannot be converted 
+to an integer (as required by the id: int parameter), FastAPI throws a 
+validation error. By placing the "/posts/latest" route before the dynamic 
+"/posts/{id}" route, the request will correctly match the intended endpoint.
+
+
+
+Deleting a Post
+
+Fairly simple. Use a helper function to get the index of the post that 
+we want to delete from the array, and pop that index from the array.
+
+def find_index_post(id):
+    for i, p in enumerate(my_posts):
+        if p['id'] == id:
+            return i
+
+@app.delete("/posts/{id}")
+async def delete_post(id: int):
+    index = find_index_post(id)
+    my_posts.pop(index)
+    return {'message': 'post was successfully deleted'}
+
+But, a 204 status code shows that a deletion was successful.
+
+@app.delete("/posts/{id}", status_code=status.HTTP_204_NO_CONTENT)
+
+BUT, we shouldn't really send back data for a DELETE request, just
+send back the HTTP response.
+
+@app.delete("/posts/{id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_post(id: int):
+    index = find_index_post(id)
+    my_posts.pop(index)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+Lastly, we need to ensure that the user cannot try and delete a post
+that doesn't exist. This sends a 500 error, since we try to grab
+the index from the find_index_post, and we then try to pop with an
+index of None.
+
+@app.delete("/posts/{id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_post(id: int):
+    index = find_index_post(id)
+
+    if index == None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f"post with id: {id} does not exist")
+    my_posts.pop(index)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+So, just make sure we raise an exception when index is None.
+
+
+
+Update Post
+
+Since we are updating a post, we need our frontend or Postman, to actually send
+the data that we want to update wtih. You can see what we need to include from
+the class Post in main.py. So in Postman, we can go to the Body and send in the
+JSON data that we pass through.
+
+Since we are using a PUT operation, we need to pass all information (all the fields
+that the post has). Even if we update only one field, we need to pass in
+the others unchanged.
+
+{
+    "title": "updated title",
+    "content": "content of post 1"
+}
+
+See how title is updated, but content remains the same. Both are included since
+PUT replaces the resource.
+
+# updating
+@app.put("/posts/{id}")
+async def update_post(id: int, post: Post):
+    # find index of the post
+    index = find_index_post(id)
+
+    # if it doesn't exist, 404 error
+    if index == None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f"post with id: {id} does not exist")
+    
+    # convert all data from fronend to dictionary
+    post_dict = post.model_dump()
+    # we then add the id to the dictionary, since it is not included in the request body
+    post_dict['id'] = id
+    # so for post at that index, we update it with the new dictionary
+    my_posts[index] = post_dict
+    # return the updated post
+    return {'data': post_dict}
+
+Kinda hard at first to wrap my head around, but read through comments, it makes
+sense.

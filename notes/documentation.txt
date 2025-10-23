@@ -1,0 +1,21 @@
+Whenever an API built, you want to create documentation so users
+know how to use it. And one of the challenges, is that it's not a 
+simple process, and anytime you make changes to your API, you have
+to make sure that you have to also update the documentation as well.
+
+FastAPI automatically generates the documentation based on the path
+operations that we define.
+
+So to see this documentation just do the normal URL /docs
+
+http://127.0.0.1:8000/docs
+
+This shows the built in documtation powered by Swagger UI.
+
+Additionally, there's a tool called redoc that does the same thing.
+
+http://127.0.0.1:8000/redoc
+
+Ultimately, this lessens the pain of having to update our documentation
+every single time.
+

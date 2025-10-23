@@ -1,0 +1,5 @@
+Python has a concept of packages. Packages are nothing more than a 
+fancy name for a folder. But, for something to properly act as a 
+package, Python requires you to create a dummy file, __init__.py.
+
+This turns the app folder, for instance, to properly act as a package.

@@ -1,0 +1,54 @@
+Python Virtual Environments
+
+Say in Project 1, we want to install Fastapi v1.2.1.
+But, in Project 2, we want are required to run Fastapi v2.4.3.
+
+This means we need to upgrade to Fastapi v2.4.3 on our local machine.
+This wouldn't cause an issue if v2.4.3 is backwards compatible. But, if
+there are breaking changes, this causes issues in Project 1. But, if we 
+also don't upgrade, it causes issues in Project 2.
+
+So, with virtual environments, we'd create a virtual environment in 
+Project 1, and it's an isolated environment that doesn't affect any other
+environments. Within this environment we can install any Python packages,
+and any versions we want.
+
+And we'd do the same with Project 2, and install any version of any package
+we want.
+
+This allows for separate environments to not interfere with one another.
+
+
+
+Creating a Virtual Environment
+
+Using venv is fine for every one.
+
+python3 -m venv <name>
+
+Then, go into the command palette, and type this in. The dot stands for our
+current directory.
+
+./venv/bin/python
+
+And lastly, we want our terminal to be utilizing the venv. So, this means
+we need to activate it, making our source point to activate in bin in venv.
+
+source venv/bin/activate
+
+
+
+Starting up a Virtual Environment Again
+
+source venv/bin/activate
+
+
+
+Conda Base
+
+(base) is Conda environment
+(venv) (base) is stacking Conda -> Python venv
+
+Doesn't really matter, as the shell's path points to the venv/bin/python (which python)
+
+But, it's cleaner to avoid having both active at once.

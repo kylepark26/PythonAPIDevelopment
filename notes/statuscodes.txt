@@ -1,0 +1,108 @@
+Currently our dictionary of posts only have 2 unique identifiers, 1 and 2.
+So in Postman, what if we sent a GET request to a nonexistent path?
+
+http://127.0.0.1:8000/posts/3
+
+{
+    "post_detail": null
+}
+
+This isn't good; this doesn't give any feedback to the frontend of what
+this issue is. They don't know if an error occurred, we were unable to
+retrieve this error properly, a server error, or if this item doesn't 
+even exist.
+
+So, we need to tell the frontend that the ID doesn't actually exist.
+
+Sending a 404 error allows the frontend to know that it doesn't exist.
+
+"404 Not Found": Server cannot find the requested resource
+
+
+
+Creating the Response
+
+from fastapi import FastAPI, Response
+
+...
+
+# get individual post
+@app.get("/posts/{id}")
+async def get_post(id: int, response: Response):
+    post = find_post(id)
+    if not post:
+        response.status_code = 404
+        return {"message": f"post with id: {id} was not found"}
+    return {"post_detail": post}
+
+Notice that response is passed as a parameter, which is an instance
+of the class Response. So, if the post returns None, as it doesn't 
+exist, we set the response.statuscode to 404 (Not Found), and 
+optionally return a message to the client. In Postman a 404 error
+response pops up regardless.
+
+Or,
+
+Rather than memorizing all HTTP status codes, we can import status
+from FastAPI.
+
+from fastapi import FastAPI, Response, status
+
+...
+
+# get individual post
+@app.get("/posts/{id}")
+async def get_post(id: int, response: Response):
+    post = find_post(id)
+    if not post:
+        response.status_code = status.HTTP_404_NOT_FOUND
+        return {"message": f"post with id: {id} was not found"}
+    return {"post_detail": post}
+
+This allows you to see all the status codes and what best fits 
+what you need.
+
+Or, finally
+
+HTTPException from FastAPI.
+
+from fastapi import FastAPI, Response, status, HTTPException
+
+...
+
+# get individual post
+@app.get("/posts/{id}")
+async def get_post(id: int):
+    post = find_post(id)
+    if not post:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
+                            detail=f"post with id: {id} was not found")
+    return {"post_detail": post}
+
+Note how it's all in one line using raise, and we don't use the 
+Response object anymore. We simply enter the parameters of status_code
+and detail, and FastAPI automatically generates the appropriate HTTP
+response.
+
+
+
+Create Post, HTTP 201
+
+# post request
+@app.post("/posts", status_code=status.HTTP_201_CREATED)
+async def create_post(post: Post):
+    post_dict = post.model_dump()
+    post_dict['id'] = randrange(0, 1000000)
+    my_posts.append(post_dict)
+    return {"data": post_dict}
+
+See how for the created post, we want to set a 201 status code
+indicating that the request was successful and a new resource
+was created. So, if we want to change the default status code, 
+we just include the status_code parameter in the route decorator.
+
+
+
+Delete Post, HTTP 204
+
+Successful deletion.

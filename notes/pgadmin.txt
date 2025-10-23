@@ -1,0 +1,104 @@
+Creating a new server on pgAdmin
+
+Click add new server
+
+For the name, you can do anything.
+
+Then, go to Connection and for the Host name/address we can do localhost,
+since this is running on our local machine. But, if this ran on AWS or 
+some cloud provider, that cloud provider would provide an IP address, or
+even a domain name to connect to.
+
+The port we can leave the same.
+
+And, when we connect to Postgres we always have to give it the name of a 
+database to connect you, since this a fresh installation, the only database
+available is postgres. 
+
+Now we need to give a username and password. We haven't created a user yet,
+and there is one default user, the super user, and the username is always
+postgres. 
+
+NOTE: Since we're on a macOS, when we install PostgreSQL, it doesn't create
+the default superuser named postgres, but instead creates a role that matches
+the macOS username (kylepark) and gives it superuser privileges.
+
+
+
+Creating a new database
+
+Now under our Local Postgres server, we can click the toggle and see 
+another dropdown of Databases. In here, we can see the database postgres
+that was created. Instead, now we want to create our own database called
+fastapi for example. You can see on the headers the SQL version
+of creating a database.
+
+CREATE DATABASE "fastapi"
+    WITH
+    OWNER = kylepark
+    ENCODING = 'UTF8'
+    CONNECTION LIMIT = -1
+    IS_TEMPLATE = False;
+
+
+
+Creating tables
+
+Within the fastapi database, click Schemas, then public, then tables.
+This is where we create and define our tables.
+
+We insert the table name, then we can go to the Columns header.
+
+This is where we define our columns, or the schema of the database.
+
+To create a new column, just click the + button.
+
+There are a ton of data types, so read through documentation.
+
+Anytime we work with text, use character varying for data type.
+
+Most databases support the ability to automatically generate an ID for 
+us. We don't want to be responsible for creating an ID and put this
+information into Postgres. This is where the datatype serial comes in.
+This starts at 1, then increments every time, ensuring no two entries
+have the same id.
+
+
+
+Editing information in databases
+
+With this created table, we can now click the dropdown and see the 
+table we created. By right clicking, we can see View/Edit data. 
+Since we have no data, we can do grab all rows, but there's databases
+that have millions of entires, so there's time where clicking 
+first 100 rows, last 100 rows, makes more sense. 
+
+Now when we click get all rows, it states that it ran a query. 
+
+SELECT * FROM public.products
+ORDER BY id ASC 
+
+This shows that it selects all rows from our table, and orders it by 
+id from smallest to largest (ASC = ascending).
+
+
+
+Creating an Entry 
+
+After the query finishes, we see the data output. To add in data, we
+can click the + button again, and add in the necessary information. 
+However, this isn't automatically saved since we manually created this
+entry in the "Data Output" grid. In the bottom row it shows how 
+"Changes staged: Added: 1". So, right above the table changes we made
+there's a save button.
+
+
+
+Date Time Stamps:
+
+In Postgres, there are types where you can have the timestamp.
+
+timestamp with time zone is the type. We want to be able to create
+a product, and then have Postgres to automatically fill it in. So, 
+in constraints, we can put in a default value of NOW(), meaning it
+fills it in of the time currently.

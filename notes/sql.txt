@@ -1,0 +1,328 @@
+Query Editor in pgAdmin4
+
+
+In SQL, every single command ends with a semicolon.
+
+SELECT * from products;
+
+This prints out every single entry from our products table.
+
+SELECT: select these rows
+*: getting every single column back from the table
+from: run from
+products: the table name
+
+So, we can filter out columns if there are large tables and we only want
+a specific column.
+
+SELECT name from products;
+
+This gives all entries, but only under the name column.
+
+SELECT name, id, price from products;
+
+Gives all entires under name, id, price column. It follows the order that
+we gave.
+
+The capitalization doesn't matter. SELECT or select is the same.
+User-provided information are keywords that we put in. Like products.
+SQL-specific words can be capitalized or lowercased. Best practice is
+capitalized. Easily allows us to tell which is which in SQL commands.
+
+
+
+Fetch Column, and Rename for Clarity
+
+SELECTED id AS products_id FROM products;
+
+Now this returns the products_id with the id content.
+
+You can also concatentate multiple.
+
+SELECT id AS products_id, is_sale AS on_sale FROM products;
+
+
+
+Filter Rows
+
+Say we want to get a row that matches a certain ID.
+
+SELECT * FROM products WHERE id = 10;
+
+Fairly simple, and readable. Returns the row with id = 10.
+
+Furthermore, we can do any column that matches as well.
+
+SELECT * FROM products WHERE inventory = 0;
+
+This shows the list of products that have an empty inventory.
+Note that inventory was a column, and we can dissect rows from
+a column instead of a specific entity.
+
+This is easy for floats, and simple numbers. But for strings,
+it's more complex.
+
+SELECT * FROM products WHERE name = 'TV';
+
+You MUST use single quotes when doing varying characters or any
+form of text.
+
+
+
+SQL Operators
+
+Say we want to get all elements where the price is greater than 50.
+
+SELECT * FROM products WHERE price > 50;
+
+Very simple. Very readable.
+
+SELECT * FROM products WHERE price >= 50;
+
+Same thing, inclusive.
+
+Same thing goes for <, <=
+
+
+
+NOT Operator
+
+Say we want to get all products that don't have inventory zero.
+
+SELECT * FROM products WHERE inventory != 0;
+
+Returns all elements without 0. Also, <> is the same as !=.
+
+
+
+AND Operator
+
+Say we want to grab any inventory that is greater than 0, and the 
+price is greater than 20.
+
+SELECT * FROM products WHERE inventory > 0 AND price > 20;
+
+
+
+OR Operator 
+
+SELECT * FROM products WHERE price > 100 or price < 20;
+
+
+
+IN Operator 
+
+SELECT * FROM products WHERE id IN (1, 2, 3);
+
+Gets all ids where the id is equal to 1 or 2 or 3.
+Much more readable than using OR.
+
+SELECT * FROM products WHERE id = 1 OR id = 2 OR id = 3
+
+
+
+Retrieve Multiple Instances with a Text in the word
+
+SELECT * FROM products WHERE name LIKE 'TV%';
+
+Grab every row that has a name that starts with TV, and
+the % means any random characters afterwards. 
+
+You can also flip this.
+
+SELECT * FROM products WHERE name LIKE '%e';
+
+Any products that end in e.
+
+SELECT * FROM products WHERE name NOT LIKE '%e';
+
+Any products that don't end in e.
+
+SELECT * FROM produtcs WHERE name LIKE '%en%';
+
+Any products that contain the letter en.
+
+
+
+Specifying ordering the results to Postgres
+
+SELECT * FROM products;
+
+No filter criteria
+
+SELECT * FROM products ORDER BY price;
+
+This orders the products by price, ascending order.
+
+SELECT * FROM products ORDER BY price ASC;
+
+This does the same thing as above, since default is ascending.
+
+SELECT * FROM products ORDER BY price DESC;
+
+This sorts it in descending (most expensive then cheapest)
+
+
+
+
+Specifying ordering the results, and tiebreakers
+
+SELECT * FROM products ORDER BY inventory DESC;
+
+So this sorts all inventories largest to smallest.
+Say there's a bunch of zero inventory products that we
+want to further sort. Say cheapest price ascending.
+
+SELECT * FROM products ORDER BY inventory DESC, price;
+
+
+
+Get Most Recent Products 
+
+SELECT * FROM products ORDER BY created_at;
+
+Now, do we do it by ascending or descending?
+
+If we want the most recent products first, we'd do descending.
+As, by default it's ascending.
+
+SELECT * FROM products ORDER BY created_at DESC;
+
+So now, we can chain this.
+
+SELECT * FROM products WHERE price > 20 ORDER BY created_at DESC;
+
+SQL is just chains of keywords to filter out the exact data, in the 
+exact order we want.
+
+
+
+Limit of Receival
+
+Realistically in a database there's millions of queries. We don't 
+just want this all dumped onto us.
+
+SELECT * FROM products LIMIT 5;
+
+This simply grabs the first 5 rows that match this criteria.
+
+Once again, this can be chained on again.
+
+SELECT * FROM products WHERE price > 10 LIMIT 2;
+
+
+
+Offset (skips past rows)
+
+SELECT * FROM products ORDER BY id LIMIT 5;
+
+This returns the first 5 rows that match this statement.
+
+SELECT * FROM products ORDER BY id LIMIT 5 OFFSET 2;
+
+This skips the first 2 rows that match this statement, and returns
+the next 5.
+
+
+
+SQL Adding Entry 
+
+INSERT INTO products (name, price, inventory) VALUES ('tortilla', 4, 1000);
+
+products: our table we want to insert data into
+(): list of columns we want to provide data for
+
+We know that name and price need to be included in our products table,
+as these are values that are required. For inventory, although it 
+defaults to 0 if empty, we can still pass in a value. id is generated 
+naturally, and created_at is created by Postgres.
+
+The order in () for the table needs to match the order in () for values.
+Since you are able to switch the columns around.
+
+Output: 
+
+INSERT 0 1 
+
+Query returned successfully in _ msec.
+
+(0 means we're using default Postgres configuration (ignore))
+(1 means we inserted 1 row)
+
+
+
+Postgres Returning Data to User
+
+INSERT INTO products (price, name, inventory) VALUES (10000, 'car', 1000) returning *;
+
+The returning keyword returns the newly created item or items, and we need to 
+specify the columns that we want returned. * is obviously all columns, and we can 
+do specifics as well.
+
+
+
+Multiple Inserts
+
+INSERT INTO products (price, name, inventory) VALUES (10000, 'car', 1000), (50, 'laptop', 25) returning *;
+
+
+
+Delete Entries 
+
+DELETE FROM products WHERE id = 10;
+
+products: table that we want to delete from
+id: grabs the specific id that gets deleted
+
+
+
+Return Deleted Entry 
+
+DELETE FROM products WHERE id = 10 RETURNING *;
+
+Gives us the row that we deleted.
+
+
+
+Delete Multiple Rows
+
+DELETE FROM products WHERE inventory = 0;
+
+Deletes all rows where inventory is 0 in the table products.
+
+Output:
+
+DELETE 8
+
+Query returned successfully in _ msec.
+
+(8 means the number of rows deleted)
+
+
+
+Update a Row
+
+UPDATE products SET name = 'flour tortilla', price = 40 WHERE id = 25
+
+products: table
+id: specific row that we want to update
+SET: provide columns with updates after 
+
+
+
+Return Updated Row 
+
+UPDATE products SET name = 'flour tortilla' WHERE id = 25 RETURNING *;
+
+
+
+Update Multiple Rows 
+
+UPDATE products SET is_sale = true WHERE id > 15 RETURNING *;
+
+Simply provide the condition in the WHERE statement.
+Updates all rows where id > 15, and set is_sale to true.
+
+
+
+
