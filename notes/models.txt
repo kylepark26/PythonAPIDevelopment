@@ -1,0 +1,83 @@
+Creating A Model Class 
+
+
+from sqlalchemy import Column, Integer, String, Boolean
+from sqlalchemy.sql.expression import text
+from sqlalchemy.sql.sqltypes import TIMESTAMP
+
+from .database import Base
+
+class Post(Base):
+    __tablename__ = "posts"
+
+    id = Column(Integer, primary_key=True, nullable=False)
+    title = Column(String, nullable=False)
+    content = Column(String, nullable=False)
+    published = Column(Boolean, server_default='TRUE', nullable=False)
+    created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text('now()'))
+
+Base is the declarative base class. Any class that inherits Base is 
+treated as SQLAlchemy model (an ORM object). SQLAlchemy looks at the 
+model and knows how to map it to a table. 
+
+__table__name: tells SQLAlchemy to create a table in the database named 
+posts for this model 
+
+In Python, this is a model (ORM class). But, in the database it becomes a table.
+
+from . import models
+from .database import engine
+
+models.Base.metadata.create_all(bind=engine)
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+Lastly, we need to add these lines in our main file. This tells SQLAlchemy to 
+take all the modeles that inherit from Base, and create the database tables 
+for them using this engine connection. So when we run the app the first time,
+it creates the tables.
+
+The . refers to the current package, meaning the folder that contains the 
+__init__.py file and all the main.py, models.py, database.py, etc. 
+
+from . import models: import the file models.py from the same folder as this file
+from .database import engine: import engine from database.py in the same folder
+
+The session object is what's responsible for talking with the database. The 
+function get_db() gets a session from our database, and so everytime we're going
+to get a request, we're going to be able to send SQL statements to it, and then 
+after the request is done we close it out. This is much more efficient by having 
+one little function and we can just keep calling this function every time we get 
+a request to any of our API endpoints.
+
+But, to keep everything clean and keep all our database material in the .database 
+file, we can move get_db() into the .database file and simply import this function 
+into main.py. 
+
+
+
+New Parameter in Path Operation Functions
+
+db: Session = Depends(get_db)
+
+This will create the session to our database so we can perform some operations 
+to our database, and then close it once that request is finished. Then we can 
+repeate this process for every single one of our path operations.
+
+Need to import Depends from fastapi
+Need to import Session from sqlalchemy.orm
+
+
+
+Starting Up application
+
+Now, when we start up our FastAPI web server, if there are no errors, this 
+should create our posts table. Which it did.
+
+
+

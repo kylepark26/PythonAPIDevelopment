@@ -70,8 +70,7 @@ the API can hit this endpoint.
 
 @ (decorator) 
 app (FastAPI instance) 
-. 
-get (HTTP method, send GET request to API) 
+. get (HTTP method, send GET request to API) 
 ("/") (this is the root path. the path after the specific domain name of our API)
 
 http://127.0.0.1:8000, this is our URL, our web server is hosted on here.

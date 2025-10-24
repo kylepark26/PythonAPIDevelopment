@@ -9,3 +9,26 @@ This schema is basically a contract between the frontend and the backend.
 The backend sends a message to the frontend saying that they expect the data
 to look a certain way, and if it doesn't it returns an error.
 
+
+
+Schema Model
+
+Schema/Pydantic Models define the structure of a request & response 
+
+This ensures that when a user wants to create a post, the request will 
+only go through if it has a "title" and "content" in the body, and are of 
+proper type. The Pydantic/Schema model is there to provide some validation 
+to ensure that the body, and all the data fields match up to what we want. 
+
+For example, Google Chrome sends a REQUEST with the Schema/Pydantic Model to 
+the FastAPI web framework, and it responds with similarly.
+
+
+
+Clean-Up
+
+Just to make it visually appealing and organized, we can create a schemas.py file 
+to move our Pydantic model into there. We just have to make sure that we import 
+the model into our main.py file, furthermore whenever we reference it we need to 
+do schemas.Post, as it's from the schemas.py file.
+

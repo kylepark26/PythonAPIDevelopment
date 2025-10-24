@@ -2,6 +2,8 @@ Importing pydantic
 
 from pydantic import BaseModel
 
+Pydantic is a data validation and serialization library.
+
 
 
 Say we expect these two specific things for our data.
@@ -109,3 +111,49 @@ title='top beaches in florida' content='check out these awesome beaches' publish
 
 
 
+Pydantic Models for Operations 
+
+from pydantic import BaseModel
+
+# Comes from Pydantic library, schema to validate data
+class Post(BaseModel):
+    title: str
+    content: str
+    published: bool = True
+
+class CreatePost(BaseModel):
+    title: str
+    content: str
+    published: bool = True
+
+class UpdatePost(BaseModel):
+    title: str
+    content: str
+    published: bool
+
+Notice how we can create different models for each operation. This allows us 
+to modify situations where maybe Creating a post and Updating a post requires 
+different fields. For instance, if for Updating a post we only wanted the published
+field to be updated, we'd just remove the title and content field. 
+
+
+
+Revision
+
+class PostBase(BaseModel):
+    title: str
+    content: str 
+    published: bool = True 
+
+class PostCreate(PostBase):
+    pass 
+
+class PostUpdate(PostBase):
+    ...
+
+By creating a parent class of PostBase with all the required fields, we can use 
+inheritance. PostCreate can extend the PostBase class, and by default automatically
+inherit all of the fields in PostBase. We can just pass if we're fine with accepting 
+whatever PostBase has. 
+
+But, for other classes we can pass in other specific fields that we want to add in.

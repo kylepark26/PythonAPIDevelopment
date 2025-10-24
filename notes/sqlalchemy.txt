@@ -1,3 +1,11 @@
+SQLAlchemy Models 
+
+Responsible for defining the columns of our "posts" table within postgres 
+
+Is used to query, create, delete, and update entires within the database 
+
+
+
 Downloading SQLAlchemy
 
 pip install sqlalchemy 
@@ -22,7 +30,23 @@ engine = create_engine(SQLALCHEMY_DATABASE_URL)
  
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
+Base = declarative_base()
+
+
 The engine is what's responsible for SQLAlchemy to connect to a Postgres database.
 
 However, when we actually want to talk to the SQL database we have to make use of a 
 session. 
+
+All of the models that we define to actually create the tables in Postgres, are going
+to be extending the Base class.
+
+
+
+Downfall
+
+SQLAlchemy performs in a very simple way. If we were to modify a table within models.py, 
+SQLAlchemy naturally does not change the already existing table, if it exists. 
+SQLAlchemy does not auto-migrate. 
+
+

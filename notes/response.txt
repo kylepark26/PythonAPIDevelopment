@@ -1,0 +1,80 @@
+Clean-Up on Response
+
+return {"data": post_query.first()}
+
+Remove "data", unncessary. 
+
+return post_query.first()
+
+FastAPI serializes this into JSON in the response automatically.
+
+
+
+Creating Schema for Response
+
+class PostResponse(BaseModel):
+    title: str
+    content: str
+    published: bool
+
+    class Config:
+        orm_mode = True
+
+Ensures that these are the only fields that are provided in the response, not the 
+id and created_at field. 
+
+But, when we add this response_model = schemas.PostResponse, an error pops up.
+This is because the data is not in dict form. So, Pydantic's orm_mode will tell
+the Pydantic model to read the data even if it is not a dict, but an ORM model.
+
+# post/create request
+@app.post("/posts", status_code=status.HTTP_201_CREATED, response_model=schemas.PostResponse)
+async def create_post(post: schemas.PostCreate, db: Session = Depends(get_db)):
+    # cursor.execute("""INSERT INTO posts (title, content, published)
+    #                VALUES (%s, %s, %s) RETURNING *""", (post.title, post.content, post.published))
+    # new_post = cursor.fetchone()
+    # connection.commit()
+    # new_post = models.Post(title=post.title, content=post.content, published=post.published)
+    new_post = models.Post(**post.model_dump())
+    db.add(new_post)
+    db.commit()
+    db.refresh(new_post)
+    return new_post
+
+See here, how new_post is a SQLAlchemy model not a dictionary. So we need it to convert
+the SQLAlchemy model to be a Pydantic model. 
+
+
+
+Clean-Up On Schemas 
+
+class PostResponse(PostBase):
+    id: int
+    created_at: datetime
+
+    class Config:
+        orm_mode = True
+
+We can simply inherit all the fields from PostBase, then just add in the fields we want 
+to send back in our response.
+
+
+
+Get All Posts
+
+For all the other operations we can simply add resposne_model=schemas.PostResponse to 
+have the response fields match up with what we want to return.
+
+# get all posts
+@app.get("/posts", response_model=List[schemas.PostResponse])
+async def get_posts(db: Session = Depends(get_db)):
+    # cursor.execute("""SELECT * FROM posts""")
+    # posts = cursor.fetchall()
+    posts = db.query(models.Post).all()
+    return posts
+
+However, for getting all posts, doing .all() retrieves all rows from the posts 
+table as a list of SQLALchemy Post objects. So, we can't simply try and fit a list 
+into one PostResponse object. So, we need to type cast this with List. This instructs 
+FastAPI + Pydantic to take each ORM Post object, convert it to the PostResponse schema, 
+and return the entire list as JSON.

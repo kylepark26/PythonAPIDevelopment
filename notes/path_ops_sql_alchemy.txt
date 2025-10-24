@@ -1,0 +1,191 @@
+Testing using SQLAlchemy
+
+# test sqlalchemy connection
+@app.get("/sqlalchemy")
+async def test_posts(db: Session = Depends(get_db)):
+    posts = db.query(models.Post).all()
+    return {"data": posts}
+
+See how we pass in db: Session = Depends(get_db), as mentioned before 
+this is simply to create a session everytime we get a request.
+
+Depends(get_db) tells FastAPI to run the get_db() function for this request.
+get_db() creates a new SQLAlchemy session and yields it 
+FastAPI then closes the DB session automatically after the endpoint finishes
+
+But, the db.query(models.Post).all() is the varying SQLAlchemy statement.
+
+db.query starts building a SQL query (SELECT query)
+models.Post goes to the models that we imported and finds the class/model Post 
+.all() exectues the query and returns all rows as alist of Post ORM obejcts 
+
+
+
+What does db.query(models.Post) look like?
+
+# test sqlalchemy connection
+@app.get("/sqlalchemy")
+async def test_posts(db: Session = Depends(get_db)):
+    posts = db.query(models.Post)
+    print(posts)
+    return {"data": "successful"}
+
+Output:
+
+SELECT posts.id AS posts_id, posts.title AS posts_title, posts.content 
+AS posts_content, posts.published AS posts_published, posts.created_at 
+AS posts_created_at 
+FROM posts
+
+
+
+Repetitive Field Inputs
+
+# post/create request
+@app.post("/posts", status_code=status.HTTP_201_CREATED)
+async def create_post(post: Post, db: Session = Depends(get_db)):
+    # cursor.execute("""INSERT INTO posts (title, content, published)
+    #                VALUES (%s, %s, %s) RETURNING *""", (post.title, post.content, post.published))
+    # new_post = cursor.fetchone()
+    # connection.commit()
+    
+    # new_post = models.Post(title=post.title, content=post.content, published=post.published)
+    new_post = models.Post(**post.model_dump())
+    db.add(new_post)
+    db.commit()
+    db.refresh(new_post)
+    return {"data": new_post}
+
+In the manual verison, we had to map each field one-by-one. But, since post is a Pydantic 
+object (already validated) and its field names match the SQLAlchemy model's column names, we 
+can dump it to a dict and unpack it directly.
+
+post.model_dump() produces a dict like {"title": "...", "content": "...", ...}
+** is Python's dict unpacking, passing each key/value as keyword arguments to models.Post(...)
+
+
+
+Get All Posts:
+
+# get all posts
+@app.get("/posts")
+async def get_posts(db: Session = Depends(get_db)):
+    # cursor.execute("""SELECT * FROM posts""")
+    # posts = cursor.fetchall()
+    posts = db.query(models.Post).all()
+    return {"data": posts}
+
+
+
+Create / Post a Post 
+
+# post/create request
+@app.post("/posts", status_code=status.HTTP_201_CREATED)
+async def create_post(post: Post, db: Session = Depends(get_db)):
+    # cursor.execute("""INSERT INTO posts (title, content, published)
+    #                VALUES (%s, %s, %s) RETURNING *""", (post.title, post.content, post.published))
+    # new_post = cursor.fetchone()
+    # connection.commit()
+    new_post = models.Post(title=post.title, content=post.content, published=post.published)
+    db.add(new_post)
+    db.commit()
+    db.refresh(new_post)
+    return {"data": new_post}
+
+new_post = models.Post(...) creates a new Post ORM object from the request data
+db.add(new_post) stages the new object to be inserted into the DB 
+db.commit() executes the INSERT into the database 
+db.refresh(new_post) retrieves the latest state of the object from the database 
+
+
+
+GET One Post 
+
+# get individual post
+@app.get("/posts/{id}")
+async def get_post(id: int, db: Session = Depends(get_db)):
+    # cursor.execute("""SELECT * FROM posts WHERE id = %s""", (id,))
+    # post = cursor.fetchone()
+    
+    post = db.query(models.Post).filter(models.Post.id == id).first()
+
+    if not post:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
+                            detail=f"post with id: {id} was not found")
+    return {"post_detail": post}
+
+Same idea, but we use filter like the WHERE keyword and filter where the 
+id in the database of Post is equal to the id that was passed in the path operation.
+Then, we could do .all() but this wastes Postgres resources, as we know that only 
+one id exists that successfully matches this query, however doing .all() makes 
+Postgres continue to search the entire database. So, if we know that there's only 
+one entry that can be returned, using .first() makes more sense.
+
+
+
+DELETE a Post 
+
+# deleting
+@app.delete("/posts/{id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_post(id: int, db: Session = Depends(get_db)):
+    # cursor.execute("""DELETE FROM posts WHERE id = %s RETURNING *""", (id,))
+    # deleted_post = cursor.fetchone()
+    # connection.commit()
+
+    deleted_post = db.query(models.Post).filter(models.Post.id == id)
+
+    if deleted_post.first() == None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f"post with id: {id} does not exist")
+    
+    deleted_post.delete(synchronize_session=False)
+    db.commit()
+
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+First thing. 
+
+deleted_post returns a Query object that is not executed yet. The reason we don't
+do .first() at the end of this statement because .first() executes the query and 
+returns the matching Post object, or None is no row matches. 
+
+If we did .first() earlier, then we'd have to do db.delete(deleted_post) which 
+requires the actual object, not the query. So either appraoch works.
+
+synchronize_session=False means that SQLAlchemy tries to keep your session's state 
+consistent if you delete objects that may already be loaded in memory, and since we're 
+not holding any Post objects in memory here, we just tell SQLAlchemy, "Don't try to 
+sync session state; nothing to sync."
+
+
+
+UPDATE a Post 
+
+# updating
+@app.put("/posts/{id}")
+async def update_post(id: int, post: Post, db: Session = Depends(get_db)):
+    # cursor.execute("""UPDATE posts SET title = %s, content = %s, published = %s
+    #                   WHERE id = %s RETURNING *""",
+    #                (post.title, post.content, post.published, id))
+    # updated_post = cursor.fetchone()
+    # connection.commit()
+    post_query = db.query(models.Post).filter(models.Post.id == id)
+
+    updated_post = post_query.first()
+
+    if updated_post == None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f"post with id: {id} does not exist")
+
+    post_query.update(post.model_dump(), synchronize_session=False)
+    
+    db.commit()
+    
+    return {'data': post_query.first()}
+
+post_query = db.query(...) builds a Query object targetting the posts table 
+updated_post = post_query.first() executes the query to fetch the current row as an ORM object 
+Checks if this object actually exists (as if not it returns None)
+Bulk update via the Query, for PUT (full replacement) using model_dump() is right, but for 
+PATCH (partial update), you'd use post.model_dump(exclude_unset=True) to avoid overwriting 
+unspecified fields with None 
