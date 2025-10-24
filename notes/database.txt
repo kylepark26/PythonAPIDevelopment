@@ -90,3 +90,225 @@ extra functionality
 Command Line Tools: Manage Postgres through the GUI as well as the command line
 
 
+
+Connecting to the Database:
+
+pip install "psycopg2-binary<3"
+
+Installed this package. 
+
+# connecting to database 
+
+import psycopg2
+from psycopg2.extras import RealDictCursor
+
+try:
+    connection = psycopg2.connect(
+        host='localhost', 
+        database='fastapi', 
+        user='postgres', 
+        password='Place3Catch334*', 
+        cursor_factory=psycopg2.extras.DictCursor)
+    cursor = connection.cursor()
+    print("Database connection was successful!")
+except Exception as error:
+    print("Connecting to database failed")
+    print("Error:", error)
+
+host: our local machine
+database: database name
+user: user name
+password: password to database
+cursor_factory: gives column name and number, gives a nice Python dictionary in return
+cursor: calls cursor() method and saves it in cursor, used to execute SQL statements
+except Exception as error: if exceptions occurs, it's stored in error (creates Exception object)
+
+This opens a "pipe" between the Python program and PostgreSQL.
+
+This library is weird, when we create a query to retrieve a bunch of rows from the database,
+this doesn't include the column names, it just includes the values. So this is why we pass 
+in the extra library of RealDictCursor. This gives the column names.
+
+
+
+As of now, say we misenter a value when trying to connect to our database. It prints
+the error statement, but it keeps going through the rest of our code, starting up our
+FastAPI server. So really, our application, API, web server, can't do anything until 
+we actually connect to our database. We need to wait for the connection to actually go 
+through, no point in our server being up and running. 
+
+So use a while loop.
+
+import time
+
+...
+
+def connect_to_db():
+    while True:
+        try:
+            connection = psycopg2.connect(
+                host="localhost",
+                database="fastapi",
+                user="kylepark",
+                password="Place3Catch334*",
+                cursor_factory=RealDictCursor
+            )
+            cursor = connection.cursor()
+            print("Database connection was successful!")
+            return connection, cursor
+        except Exception as error:
+            print("Connecting to database failed")
+            print("Error:", error)
+            time.sleep(2)
+
+connection, cursor = connect_to_db()
+
+With --reload, Uvicorn runs a reloader parent that starts a worker child.
+Every time a watched file changes, the child is killed and started fresh. 
+When the child starts, your module is imported once, and any top-level code runs.
+
+If your retry loop (while True: ... print(...) ... break) lives at the top level, 
+it executes on every import. If the loop is mis-placed or keeps retrying, 
+you’ll see prints repeatedly, even without edits, because that loop itself is
+producing multiple prints during a single import/run.
+
+When you wrap the logic in a function and call it once (or put it in a 
+@app.on_event("startup")), the code: runs once per worker start,connects, 
+then returns/exits, so you see one print per reload, not an ongoing stream.
+
+Furthermore, what we did storing all of our information is bad, we hardcoded it.
+We'll cover later.
+
+
+
+GET Posts:
+
+# get all posts
+@app.get("/posts")
+async def get_posts():
+    cursor.execute("""SELECT * FROM posts""")
+    posts = cursor.fetchall()
+    return {"data": posts}
+
+cursor.execute(...): sends SQL to PostgreSQL, the query is done running, but 
+we haven't fetched the data into Python memory
+cursor.fetchall(): Postgres has the result ready from our SELECT query, and 
+fetchall() literally means "Get all the rows from the result set and bring them
+into Pyhon as a list"
+
+Side note. People use triple quotes to write multi-lined SQL statements.
+
+
+
+CREATE / POST Posts:
+
+# post/create request
+@app.post("/posts", status_code=status.HTTP_201_CREATED)
+async def create_post(post: Post):
+    cursor.execute("""INSERT INTO posts (title, content, published)
+                   VALUES (%s, %s, %s) RETURNING *""", (post.title, post.content, post.published))
+    new_post = cursor.fetchone()
+    return {"data": new_post}
+
+Now, we could've potenetially did:
+
+cursor.execute(f"INSERT INTO posts (title, content, published) VALUES ({post.title} ....))
+
+But imagine the user puts in some weird SQL statement (INSERT INTO ...) into the title. 
+This makes us vulnerable to SQL injection. This could potentially manipulate data in our 
+database. 
+
+The %s method, sanitizes the inputs and is the second field in the execute statement. This 
+prevents us from being vulnerable from SQL injection.
+
+Also, the .fetchone() method gets the next single frow from the result set. This makes 
+sense, when we insert one post, only one row comes back from the database. If we did 
+fetch.all() it would return a list with one element.
+
+But, notice that when we create the post in Postman everything looks fine. But 
+this post isn't updated in our databse, we need to actually commit/save the change.
+
+# post/create request
+@app.post("/posts", status_code=status.HTTP_201_CREATED)
+async def create_post(post: Post):
+    cursor.execute("""INSERT INTO posts (title, content, published)
+                   VALUES (%s, %s, %s) RETURNING *""", (post.title, post.content, post.published))
+    new_post = cursor.fetchone()
+    connection.commit()
+    return {"data": new_post}
+
+The connection.commit() line simply commits the changes that we've made. The changes we 
+make are all staged changes. We need to actually commit it.
+
+
+
+GET One Unique Post:
+
+# get individual post
+@app.get("/posts/{id}")
+async def get_post(id: int):
+    cursor.execute("""SELECT * FROM posts WHERE id = %s""", (id,))
+    post = cursor.fetchone()
+
+    if not post:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
+                            detail=f"post with id: {id} was not found")
+    return {"post_detail": post}
+
+So, originally I wrapped id with str() thinking it needed to match the SQL string.
+
+However, psycopg2 sends the SQL text with placeholders (%s) to PostgreSQL, and 
+sends the parameters separately, which then PostgreSQL itself safely substitutes
+the parameters - with automatic type conversion. This creates a parameterized
+query preventing SQL injection.
+
+Now, what's the comma after id? psycopg2's execute method signature is 
+
+cursor.execute(query, params=None)
+
+query is our SQL string
+params is a sequence or mapping of the values to fill into those placeholders
+
+So that's why it expects a tuple or a list or a dict. 
+
+If we forgot the comma, (id) is just parentheses around a variable, meaning that 
+it's just the integer value, which is not what we want.
+
+
+
+DELETING a post
+
+# deleting
+@app.delete("/posts/{id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_post(id: int):
+    cursor.execute("""DELETE FROM posts WHERE id = %s RETURNING *""", (id,))
+    deleted_post = cursor.fetchone()
+    connection.commit()
+
+    if deleted_post == None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f"post with id: {id} does not exist")
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+Makes sense.
+
+
+
+UPDATE post
+
+# updating
+@app.put("/posts/{id}")
+async def update_post(id: int, post: Post):
+    cursor.execute("""UPDATE posts SET title = %s, content = %s, published = %s
+                      WHERE id = %s RETURNING *""",
+                   (post.title, post.content, post.published, id))
+    updated_post = cursor.fetchone()
+    connection.commit()
+
+    if updated_post == None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f"post with id: {id} does not exist")
+    
+    return {'data': updated_post}
+
+Makes sense again. Just need to remember SQL statements.

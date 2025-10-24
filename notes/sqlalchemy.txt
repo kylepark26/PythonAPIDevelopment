@@ -1,0 +1,28 @@
+Downloading SQLAlchemy
+
+pip install sqlalchemy 
+
+
+If you take a look at all the packages that are installed, we need 
+to install the driver. You need to make sure you download the underlying
+driver. This is ultimately what's used to talk to the database. Since 
+we already have psycopg2 downloaded it's fine.
+
+
+
+Connecting SQLAlchemy to Database
+
+from sqlalchemy import create_engine
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
+
+SQLALCHEMY_DATABASE_URL = 'postgresql://<username>:<password>@<ip-address/hostname>/<database_name>'
+
+engine = create_engine(SQLALCHEMY_DATABASE_URL)
+ 
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+The engine is what's responsible for SQLAlchemy to connect to a Postgres database.
+
+However, when we actually want to talk to the SQL database we have to make use of a 
+session. 

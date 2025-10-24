@@ -1,0 +1,15 @@
+Faster than pgAdmin.
+
+Command S to save, Command R to refresh.
+
+Need to save everytime you do some operation.
+
+CREATE TABLE social_posts (
+  id SERIAL PRIMARY KEY,
+  title TEXT NOT NULL,
+  content TEXT NOT NULL,
+  published BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+This created the table we need.

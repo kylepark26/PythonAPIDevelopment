@@ -1,0 +1,46 @@
+ORM: Object Relational Mapper
+
+When it comes to working with a database in an application, there's many 
+different ways.
+
+We can use the default Postgres driver (psycopg2) to talk to a Postgres 
+database by sending SQL commands. If familiar with SQL.
+
+ORM is a layer abstraction that sits between the database and our FastAPI 
+application. So, we don't actually talk directly to a database anymore, 
+instead we talk to the ORM and then it talks to the database. So, we don't 
+have to use raw SQL anymore, and use standard Python code, which then translate
+to SQL themselves.
+
+So the FastAPI uses regular Python code to send specific commands to the ORM,
+and the ORM will take the code, convert it into regular SQL, and using the 
+same database driver we're using (psycopg) it'll talk to the database and 
+return the result back to us.
+
+
+
+What can ORMs do
+
+- Instead of manually defining tables in postgres, we can define our tables 
+as python models
+
+class Post(Base):
+    __table__name = "posts"
+
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String, index=True, nullable=True)
+    ...
+
+- Queries can be made exclusively through Python code
+
+db.query(models.Post).filter(models.Post.id == id).first()
+
+
+
+SQLAlchemy
+
+- SQLAlchemy is one of the most popular Python ORMs
+
+- It is a standalone library and has no association with FastAPI, it can be 
+used with any other Python web frameworks or any Python based application
+ 
