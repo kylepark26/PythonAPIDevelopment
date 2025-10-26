@@ -24,3 +24,6 @@ EOF
 # Ignore sensitive files with credentials
 main.py
 app/database.py
+
+# Ignore notes
+/notes/

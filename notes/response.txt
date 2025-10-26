@@ -18,14 +18,20 @@ class PostResponse(BaseModel):
     published: bool
 
     class Config:
-        orm_mode = True
+        model_config = ConfigDict(from_attributes=True)
 
 Ensures that these are the only fields that are provided in the response, not the 
 id and created_at field. 
 
 But, when we add this response_model = schemas.PostResponse, an error pops up.
-This is because the data is not in dict form. So, Pydantic's orm_mode will tell
-the Pydantic model to read the data even if it is not a dict, but an ORM model.
+
+We are using SQLAlchemy models in our database layer, and Pydantic models in our
+API layer. These are different object types. When we do return new_post for instance,
+new_post is a SQLAlchemy ORM object, but FastAPI doesn't send that object to the 
+client directly. Instead, it tries to convert it into the response_model that we 
+specified, HOWEVER Pydantic models normally expect a dictionary. Instead, it gets a 
+ORM object with attributes, not keys. So, this tells Pydantic, if the incoming value is 
+an object (ORM model) read attributes instead of expecting a dictionary.
 
 # post/create request
 @app.post("/posts", status_code=status.HTTP_201_CREATED, response_model=schemas.PostResponse)
@@ -78,3 +84,5 @@ table as a list of SQLALchemy Post objects. So, we can't simply try and fit a li
 into one PostResponse object. So, we need to type cast this with List. This instructs 
 FastAPI + Pydantic to take each ORM Post object, convert it to the PostResponse schema, 
 and return the entire list as JSON.
+
+

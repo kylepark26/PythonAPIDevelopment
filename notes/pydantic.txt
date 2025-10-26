@@ -157,3 +157,15 @@ inherit all of the fields in PostBase. We can just pass if we're fine with accep
 whatever PostBase has. 
 
 But, for other classes we can pass in other specific fields that we want to add in.
+
+
+
+User Schema
+
+# Schema For User
+class UserCreate(BaseModel):
+    email: EmailStr
+    password: str 
+
+Pydantic comes with a built in library called EmailStr that ensures that the email
+provided by the user is of email format.
