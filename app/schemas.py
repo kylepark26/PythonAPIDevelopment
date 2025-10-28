@@ -1,5 +1,6 @@
 from pydantic import BaseModel, ConfigDict, EmailStr
 from datetime import datetime
+from typing import Optional
 
 # Comes from Pydantic library, schema to validate data
 class PostBase(BaseModel):
@@ -33,4 +34,16 @@ class UserOut(BaseModel):
     class Config:
         model_config = ConfigDict(from_attributes=True)
 
-# Schema for Fetch User Response
+# Schema for User Login
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str
+
+# Schema for Token
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+# Schema for Token Data
+class TokenData(BaseModel):
+    id: Optional[str] = None
