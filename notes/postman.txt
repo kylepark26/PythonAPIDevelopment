@@ -11,3 +11,33 @@ Creating Collections:
 
 Save HTTP requests into a collection so it memorizes, remembers, and saves any requests
 made, allowing you to exit out and not worry about losing it.
+
+
+
+Advanced Postman Operations
+
+Environments is a set of variables that allow us to switch the context of our request.
+
+Currently our requests are hard coded to 127.0.0.1..., and this is currently our development
+environment. Ultimately, when we deploy our app, this will be deployed on some server, and 
+have some public IP. This means, we'd have to change every single one of our requests when 
+we switch from dev to prod, and prod to dev. 
+
+To use this, we create an environment, insert URL as a variable and set it to the localhost
+URL. Then, in our actual collections, we just change the url to {{URL}}posts, or which ever 
+end route we want to go to. {{URL}} uses the variable.
+
+
+Authentication Difficulties
+
+When we want to test paths, due to authentication, we have to login, get the token, 
+copy and paste the token into the bearer token spot, and then click send. This becomes
+tiring. Postman automates the process.
+
+pm.environment.set("JWT", pm.response.json().access_token);
+
+By inserting this line into scripts in our login Postman request, this sets the 
+access_token to the variable "JWT". Then, as above, we can simply do {{JWT}} in the 
+token spot, whenever we want to send a request that requires authentication. This 
+mildly lessens the tiresome aspect of copying and pasting.
+

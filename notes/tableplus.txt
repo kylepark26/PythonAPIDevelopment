@@ -13,3 +13,18 @@ CREATE TABLE social_posts (
 );
 
 This created the table we need.
+
+
+
+Foreign Keys
+
+Easy. Just point whichever column you want to whichever other table's column
+you want. 
+
+There's some actions.
+
+On delete: 
+CASCADE, if the id of the user is deleted, then all posts associated 
+with this id is deleted.
+SET DEFAULT: sets a default id if the user is deleted
+SET NULL: sets the id to null if the user is deleted 

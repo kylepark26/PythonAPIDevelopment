@@ -11,10 +11,10 @@ class PostBase(BaseModel):
 class PostCreate(PostBase):
     pass 
 
-
 class PostResponse(PostBase):
     id: int
     created_at: datetime
+    owner_id: int
 
     class Config:
          model_config = ConfigDict(from_attributes=True)
