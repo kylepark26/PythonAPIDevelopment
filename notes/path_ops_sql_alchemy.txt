@@ -189,3 +189,29 @@ Checks if this object actually exists (as if not it returns None)
 Bulk update via the Query, for PUT (full replacement) using model_dump() is right, but for 
 PATCH (partial update), you'd use post.model_dump(exclude_unset=True) to avoid overwriting 
 unspecified fields with None 
+
+
+
+Updating the GET Posts
+
+# get all posts
+@router.get("/", response_model=List[schemas.PostOut])
+async def get_posts(db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user), limit: int = 10, skip: int = 0, search: Optional[str] = ""):
+    # cursor.execute("""SELECT * FROM posts""")
+    # posts = cursor.fetchall()
+    
+    # posts = db.query(models.Post).filter(models.Post.title.contains(search)).limit(limit).offset(skip).all()
+    
+    posts = db.query(models.Post, func.count(models.Vote.post_id).label("votes")).join(
+        models.Vote, models.Vote.post_id == models.Post.id, isouter=True).group_by(models.Post.id).filter(
+            models.Post.title.contains(search)).limit(limit).offset(skip).all()
+    
+    return posts
+
+Now that we’ve added a voting system, we want our GET /posts route to return each post along with 
+the total number of votes it has received. To accomplish this, we use SQLAlchemy to perform an outer 
+join between the Post and Vote tables and then apply a GROUP BY to aggregate vote counts per post.
+
+Instead of returning only Post objects, the query now returns both the post data and the corresponding 
+vote count. Because this changes the structure of the response, we introduced a new schema (PostOut) 
+that nests the Post data and includes an additional votes field.

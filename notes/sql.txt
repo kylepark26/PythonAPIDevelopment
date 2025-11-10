@@ -325,4 +325,57 @@ Updates all rows where id > 15, and set is_sale to true.
 
 
 
+JOIN
 
+Eventually we want information from 2 or more tables at a time.
+
+Say we want to get all of our posts.
+
+SELECT * FROM posts;
+
+Then, say we want to get the username and email from the owner_id field on 
+the posts table. Realize that posts.owner_id is a foreign key referencing 
+users.id.
+
+SELECT * FROM posts LEFT JOIN users ON posts.owner_id = users.id;
+
+LEFT JOIN starts with all rows from posts, and for each post try to find 
+the matching user where posts.owner_id == users.id. If a match is found, add 
+the user data to the result, if no matching user exists, still return to the post 
+but the user fields will be NULL. This is why it's called LEFT join, we keep 
+everything from the left table (posts), even if the right side (users) is missing.
+
+Say we want to get the number of posts created by each user. 
+
+SELECT users.id, users.email COUNT(posts.id) AS user_post_count 
+FROM posts 
+RIGHT JOIN users ON posts.owner_id = users.id 
+GROUP BY users_id;
+
+
+
+Posts Table and Vote Table
+
+SELECT posts, COUNT(votes.post_id) as votes FROM posts 
+LEFT JOIN votes ON posts.id = votes.post_id 
+GROUP BY posts_id;
+
+This returns every column from the posts table, and counts 
+how many times that post_id appears in votes. This gives the number of votes 
+for each post. So, we start from the posts table, and join the votes table 
+to the posts table where the post IDs match. 
+
+LEFT JOIN means, we return every row from posts, if there are matching votes 
+include them, if no votes, still return the votes but votes.post_id will be null.
+
+And, we GROUP by posts.id, grouping all rows by each post, so COUNT() knows which 
+rows belong to each post. 
+
+
+
+Specifiying a single post
+
+SELECT posts, COUNT(votes.post_id) as votes FROM posts 
+LEFT JOIN votes ON posts.id = votes.post_id 
+WHERE posts.id = 1
+GROUP BY posts_id;

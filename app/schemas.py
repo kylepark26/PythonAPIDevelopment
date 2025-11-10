@@ -1,6 +1,7 @@
-from pydantic import BaseModel, ConfigDict, EmailStr
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 from datetime import datetime
 from typing import Optional
+from pydantic.types import Annotated
 
 # Pydantic models used for request validation and response serialization.
 
@@ -37,6 +38,13 @@ class PostResponse(PostBase):
     class Config:
          model_config = ConfigDict(from_attributes=True)
 
+class PostOut(BaseModel):
+    Post: PostResponse
+    votes: int
+    
+    class Config:
+         model_config = ConfigDict(from_attributes=True)
+
 # Schema For User
 class UserCreate(BaseModel):
     email: EmailStr
@@ -50,3 +58,8 @@ class Token(BaseModel):
 # Schema for Token Data
 class TokenData(BaseModel):
     id: Optional[str] = None
+
+# Schema for Voting
+class Vote(BaseModel):
+    post_id: int
+    dir: Annotated[int, Field(le=1, ge=0)]

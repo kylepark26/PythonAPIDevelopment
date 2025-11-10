@@ -312,3 +312,9 @@ async def update_post(id: int, post: Post):
     return {'data': updated_post}
 
 Makes sense again. Just need to remember SQL statements.
+
+
+
+Composite Keys:
+- A primary key that spans multiple columns
+- Since primary keys must be unique, this will ensure no user can like a post twice
