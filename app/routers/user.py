@@ -3,6 +3,9 @@ from fastapi import APIRouter, Depends, HTTPException, status, APIRouter
 from sqlalchemy.orm import Session
 from ..database import get_db
 
+# Routes for user signup, fetch users
+# Uses User model, UserCreate and UserOut schemas, and utils for password hashing
+
 router = APIRouter(
     prefix="/users",
     tags=['Users']

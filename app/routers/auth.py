@@ -3,6 +3,10 @@ from sqlalchemy.orm import Session
 from fastapi.security.oauth2 import OAuth2PasswordRequestForm
 from .. import database, schemas, models, utils, oauth2
 
+# Login route that validates credentials and returns access token
+# Depends on utils/oauth2 to create/verify JWT tokens
+# Provides current_user dependency in protected routes
+
 router = APIRouter(tags=['Authentication'])
 
 @router.post('/login', response_model=schemas.Token)

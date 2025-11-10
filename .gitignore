@@ -9,7 +9,6 @@ __pycache__/
 # Envs
 venv/
 .env
-*.env
 
 # Editors/OS
 .DS_Store
@@ -20,10 +19,6 @@ venv/
 .mypy_cache/
 .pytest_cache/
 EOF
-
-# Ignore sensitive files with credentials
-main.py
-app/database.py
 
 # Ignore notes
 /notes/
