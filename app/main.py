@@ -1,15 +1,28 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
 from . import models
 from .database import engine
 from .config import settings
 # import routers
 from .routers import post, user, auth, vote
 
-# Creates DB tables
-models.Base.metadata.create_all(bind=engine)
+# Tells SQLAlchemy to run the create statements so that it generated 
+# all of the tables when it first started up. Now we have Alembic.
+# models.Base.metadata.create_all(bind=engine)
 
 # Create a FastAPI instance
 app = FastAPI()
+
+origins = ["*"]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"]
+)
 
 # Contains a raw psycopg2 connection helper, used for direct SQL testing
 # def connect_to_db():

@@ -61,7 +61,7 @@ can be added to the column to ensure that the column is never left blank.
 
 SQL 
 
-Structured Query Language - Langugae used to communicate with DBMS
+Structured Query Language - Language used to communicate with DBMS
 
 So, we send a SQL statement to DBMS, and it's going to then take that
 statement and perform that operation on the database, and then it's 
