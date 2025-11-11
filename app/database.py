@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-from sqlachemy.engine import URL
+from sqlalchemy.engine import URL
 from .config import settings
 # Creates SQLAlchemy engine and SessionLocal class for DB sessions
 
@@ -15,7 +15,7 @@ db_url = URL.create(
     host=str(settings.database_hostname),
     port=int(settings.database_port),
     database=str(settings.database_name),
-    query={"sslmode": sslmode},              # key bit for Railway
+    query={"sslmode": settings.database_sslmode},   # <--- toggle here
 )
 engine = create_engine(db_url)
 
